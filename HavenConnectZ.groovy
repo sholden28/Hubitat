@@ -21,7 +21,6 @@ metadata {
 		capability "Refresh"
 		capability "Sensor"
 		capability "Battery"
-		capability "Health Check"
 		capability "Configuration"
 
 		fingerprint inClusters: "0x6C", deviceJoinName: "Haven Lock"
@@ -51,18 +50,6 @@ private getCommandClassVersions() {
  * Called on app installed
  */
 def installed() {
-	// Device-Watch pings if no device events received for 1 hour (checkInterval)
-	sendEvent(name: "checkInterval", value: 1 * 60 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID, offlinePingable: "1"])
-	scheduleInstalledCheck()
-}
-
-/**
- * Verify that we have actually received the lock's initial states.
- * If not, verify that we have at least requested them or request them,
- * and check again.
- */
-def scheduleInstalledCheck() {
-	runIn(120, "installedCheck", [forceForLocallyExecuting: true])
 }
 
 def installedCheck() {
@@ -97,9 +84,6 @@ def uninstalled() {
  * @return hubAction: The commands to be executed
  */
 def updated() {
-	// Device-Watch pings if no device events received for 1 hour (checkInterval)
-	sendEvent(name: "checkInterval", value: 1 * 60 * 60, displayed: false, data: [protocol: "zwave", hubHardwareId: device.hub.hardwareID, offlinePingable: "1"])
-
 	def hubAction = null
 	try {
 		def cmds = []
@@ -370,7 +354,7 @@ private def handleBatteryAlarmReport(cmd) {
 	switch (cmd.zwaveAlarmEvent) {
 		case 0x01: //power has been applied, check if the battery level updated
 			log.debug "Batteries replaced. Queueing a battery get."
-			runIn(10, "queryBattery", [overwrite: true, forceForLocallyExecuting: true])
+			runIn(10, "queryBattery", [overwrite: true])
 			state.batteryQueries = 0
 			result << response(secure(zwave.batteryV1.batteryGet()))
 			break;
@@ -643,7 +627,7 @@ private queryBattery() {
 	if (state.batteryQueries == null) state.batteryQueries = 0
 	if ((!state.lastbatt || now() - state.lastbatt > 10*1000) && state.batteryQueries < 5) {
 		log.debug "It's been more than 10s since battery was updated after a replacement. Querying battery."
-		runIn(10, "queryBattery", [overwrite: true, forceForLocallyExecuting: true])
+		runIn(10, "queryBattery", [overwrite: true])
 		state.batteryQueries = state.batteryQueries + 1
 		sendHubCommand(secure(zwave.batteryV1.batteryGet()))
 	}
