@@ -23,8 +23,8 @@ metadata {
 		capability "Battery"
 		capability "Configuration"
 
-		fingerprint inClusters: "0x6C", deviceJoinName: "Haven Lock"
-		fingerprint mfr: "0182", prod: "0001", model: "0001", deviceJoinName: "Haven Lock" //HavenConnect Smart Lock
+		fingerprint inClusters: "0x5E,0x55,0x98,0x9F,0x6C", deviceJoinName: "Haven Connect Z"
+		fingerprint mfr: "043A", prod: "0004", model: "0001", deviceJoinName: "Haven Connect Z" //Haven Connect Z Smart Lock
 	}
 }
 
